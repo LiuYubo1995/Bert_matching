@@ -10,15 +10,12 @@ import torch.utils.data.dataloader as DataLoader
 
 
 class modelDataset(Dataset.Dataset):
-    #初始化，定义数据内容和标签
     def __init__(self, data1, data2, label):
         self.data1 = data1
         self.data2 = data2
         self.label = label
-    #返回数据集大小
     def __len__(self):
         return len(self.label)
-    #得到数据内容和标签
     def __getitem__(self, index):
         data1 = torch.LongTensor(self.data1[index])
         data2 = torch.LongTensor(self.data2[index])
