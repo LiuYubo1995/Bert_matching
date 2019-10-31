@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertTokenizer, BertModel, BertAdam
+from pytorch_pretrained_bert import BertTokenizer, BertModel, BertAdam, BertConfig, convert_tf_checkpoint_to_pytorch
 import numpy as np
 from tqdm import tqdm
 import pandas as pd
@@ -15,11 +15,12 @@ def get_args():
     parser.add_argument("--batch_size", type=int, default=2)
     parser.add_argument("--num_epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=2e-5)
-    parser.add_argument("--model", type=str, default='bert-base-uncased')
+    parser.add_argument("--model_path", type=str, default='../bert_model/uncased_L-12_H-768_A-12/')
     parser.add_argument("--max_sequence_length", type=int, default=200) 
+    parser.add_argument("--hidden_dim", type=int, default=768) 
     parser.add_argument("--log_path", type=str, default="result/log_data.txt")
     parser.add_argument("--saved_path", type=str, default="trained_models")
-    parser.add_argument("--load_model", type=str, default=None)
+    parser.add_argument("--load_model", type=str, default=None) 
     args = parser.parse_args() 
     return args 
 
@@ -41,9 +42,16 @@ def main(args):
     lr = args.lr
     num_epochs = args.num_epochs
     max_sequence_length = args.max_sequence_length
-    bert_model = args.model
+    BERT_MODEL_PATH = args.model_path
+    hidden_dim = args.hidden_dim
+    bert_config = BertConfig(BERT_MODEL_PATH+'bert_config.json')
+    tokenizer = BertTokenizer.from_pretrained(BERT_MODEL_PATH, cache_dir=None, do_lower_case=True)
+    # convert_tf_checkpoint_to_pytorch.convert_tf_checkpoint_to_pytorch(
+    #         BERT_MODEL_PATH + 'bert_model.ckpt', 
+    #         BERT_MODEL_PATH + 'bert_config.json',
+    #         BERT_MODEL_PATH + 'pytorch_model.bin')
+
     file = pd.read_csv('quora.tsv', '\t')[:10]
-    tokenizer = BertTokenizer.from_pretrained(bert_model, cache_dir=None, do_lower_case=True)
     #file['question1'] = file['question1'].astype(str) 
     question1 = convert_lines(file["question1"], max_sequence_length, tokenizer)
     #file['question2'] = file['question2'].astype(str)
@@ -51,7 +59,7 @@ def main(args):
     label = np.array(file['is_duplicate']) 
     dataset = modelDataset(question1, question2, label)
 
-    model = matchingModel(bert_model)
+    model = matchingModel(BERT_MODEL_PATH, hidden_dim)
     model.train() 
 
     accumulation_steps=2

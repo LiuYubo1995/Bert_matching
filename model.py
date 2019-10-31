@@ -5,14 +5,14 @@ import numpy as np
 from tqdm import tqdm
 
 class matchingModel(nn.Module):
-    def __init__(self, pre_trained_model):
+    def __init__(self, pre_trained_model, hidden_dim):
         super(matchingModel, self).__init__()
         
         self.model = BertModel.from_pretrained(pre_trained_model)
-        self.fc_query = nn.Linear(768, 384)
-        self.fc_bidword = nn.Linear(768, 384)
+        self.fc_query = nn.Linear(hidden_dim, int(hidden_dim/2))
+        self.fc_bidword = nn.Linear(hidden_dim, int(hidden_dim/2))
         self.dropout = nn.Dropout(p = 0.2)
-        self.fc1 = nn.Linear(384*4, 256)
+        self.fc1 = nn.Linear(hidden_dim*2, 256)
         self.fc2 = nn.Linear(256, 1) 
         
     def infer_metrics(self, x1, x2):
